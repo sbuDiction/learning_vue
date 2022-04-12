@@ -21,7 +21,7 @@
             <div class="row">
                 <div class="col">
                     <label for="cars">Choose a car:</label>
-                    <select name="cars" id="make" v-model="makeValue" @change="filterCars">
+                    <select name="cars" id="make" v-model="makeValue" @change="handleOnChange">
                         <option value="">Make</option>
                         <option value="Toyota">Toyota</option>
                         <option value="Volkswagen">Volkswagen</option>
@@ -32,7 +32,7 @@
                 </div>
                 <div class="col">
                     <label for="cars">Choose a color:</label>
-                    <select name="cars" id="color">
+                    <select name="cars" id="color" v-model="colorValue" @change="handleOnChange">
                         <option value="">Color</option>
                         <option value="Red">Red</option>
                         <option value="Blue">Blue</option>
@@ -111,38 +111,53 @@
                     isLoading: false,
                     carsList: [],
                     counter: 1,
-                    makeValue: ''
+                    makeValue: '',
+                    colorValue: ''
                 }
             },
 
             methods: {
                 getCars() {
                     this.isLoading = true;
-                    fetch('http://api-tutor.herokuapp.com/v1/cars').then(response => {
-                        return response.json();
-                    }).then(cars => {
+                    fetch('http://api-tutor.herokuapp.com/v1/cars').then(response => response.json()).then(cars => {
                         this.isVisible = true;
                         this.isLoading = false
                         this.carsList = cars
                     })
                 },
 
-                filterCars() {
+                filterByMake(make) {
+                    const makeValue = this.makeValue;
+                    fetch(`http://api-tutor.herokuapp.com/v1/cars/make/${makeValue}`).then(response => response.json()).then(cars => {
+                        this.carsList = cars;
+                    })
+                },
+
+                filterByColor(color) {
+                    const colorValue = this.colorValue;
+                    fetch(`http://api-tutor.herokuapp.com/v1/cars/color/${colorValue}`).then(response => response.json()).then(cars => {
+                        this.carsList = cars;
+                    })
+                },
+
+                filterByMakeAndColor(make, color) {
                     const makeValue = this.makeValue;
                     const colorValue = this.colorValue;
-                    const regNumberValue = this.regNumberValue;
-                    const priceValue = this.priceValue;
-                    const list = this.carsList;
+                    fetch(`http://api-tutor.herokuapp.com/v1/cars/make/${makeValue}/color/${colorValue}`).then(response => response.json()).then(cars => {
+                        this.carsList = cars;
+                    })
+                },
 
-                    const filteredCars = list.filter(car => {
-                        if (makeValue) {
-                            return list.make === makeValue;
-                        }
-                    });
-
-                    // return filteredCars;
-                    console.log(filteredCars);
-                    this.carsList = filteredCars;
+                handleOnChange() {
+                    const makeValue = this.makeValue;
+                    const colorValue = this.colorValue;
+                    if (makeValue != '' && colorValue != '') {
+                        this.filterByMakeAndColor(makeValue);
+                    } else if (makeValue != '') {
+                        this.filterByMake(makeValue);
+                    } else if (colorValue != '') {
+                        this.filterByColor(colorValue);
+                    }
                 }
             },
 
